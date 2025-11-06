@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import click
 
@@ -26,6 +27,8 @@ def cli() -> None:
 @click.option("--prefix", default="Echo: ", help="EchoAgent prefix (for the echo agent)")
 def chat(agent: str, dialog_id: str, prefix: str) -> None:
     """Start interactive chat loop with the selected agent."""
+    # Suppress INFO logs during chat for cleaner output
+    logging.getLogger().setLevel(logging.WARNING)
     asyncio.run(_chat_loop(agent_name=agent, dialog_id=dialog_id, prefix=prefix))
 
 
@@ -43,7 +46,8 @@ async def _chat_loop(agent_name: str, dialog_id: str, prefix: str) -> None:
 
     while True:
         # use builtin input to keep it simple and synchronous for CLI
-        user_text = input("You> ").strip()
+        user_prompt = click.style("User> ", fg="blue", bold=True)
+        user_text = input(user_prompt).strip()
         if not user_text:
             continue
         if user_text.lower() in {"exit", "quit"}:
@@ -59,7 +63,8 @@ async def _chat_loop(agent_name: str, dialog_id: str, prefix: str) -> None:
         # append agent response to memory
         await memory.append(dialog_id, role="assistant", text=response)
 
-        print(f"Bot> {response}")
+        assistant_prompt = click.style("Assistant> ", fg="green", bold=True)
+        print(f"{assistant_prompt}{response}")
 
 
 if __name__ == "__main__":
