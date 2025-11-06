@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     LLM_MODEL_NAME: str
 
+    # The Redis server connection URL, used for application state, caching, and memory persistence
+    REDIS_URL: str
+
     # Generation parameters
     LLM_TEMPERATURE: float = 0.7
     LLM_MAX_TOKENS: int = 1024
