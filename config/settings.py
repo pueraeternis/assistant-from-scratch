@@ -1,3 +1,5 @@
+import logging
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +22,12 @@ class Settings(BaseSettings):
 
     # Default system prompt
     SYSTEM_PROMPT: str = "You are a helpful and concise AI assistant."
+
+    # Logging params
+    LOG_LEVEL: int = logging.INFO
+    LOG_FILE: str = "logs/assistant.log"
+    LOG_ROTATION_SIZE: int = 10 * 1024 * 1024
+    LOG_BACKUP_COUNT: int = 5
 
 
 # Create a single instance of settings for the entire application

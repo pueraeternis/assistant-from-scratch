@@ -1,0 +1,6 @@
+2025-11-07 15:19:38,004 INFO core.memory: 🧠 RedisMemory initialized. Connecting to Redis...
+2025-11-07 15:19:38,039 INFO frameworks.openai_sdk.agent: 🤖 OpenAISDKAgent initialized for model: qwen3-235b-fp8
+2025-11-07 15:19:38,039 INFO frameworks.openai_sdk.agent:    ... with tools: ['InternetSearch', 'BrowseWebpage']
+2025-11-07 15:19:53,763 INFO frameworks.openai_sdk.agent: Agent.chat called for dialog_id=vitaliy_convo with message: 'Назови победителей чемпионата мира по вольной борьбе в Загребе сентябрь 2025'
+2025-11-07 15:20:04,938 INFO httpx: HTTP Request: POST http://172.16.20.25:19000/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-07 15:20:04,942 INFO frameworks.openai_sdk.agent: Final answer received from LLM.

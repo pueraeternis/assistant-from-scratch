@@ -1,45 +1,34 @@
-"""Centralized logging configuration for the assistant project."""
-
 import logging
-import sys
-from typing import Optional, TextIO
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
+from config.settings import settings
 
 
-def setup_logging(
-    level: int = logging.INFO,
-    format_string: Optional[str] = None,
-    stream: Optional[TextIO] = None,
-) -> None:
+def setup_logging() -> None:
     """
-    Configure logging for the entire application.
-
-    Args:
-        level: Logging level (default: logging.INFO)
-        format_string: Custom format string. If None, uses default format.
-        stream: Output stream. If None, uses sys.stderr.
+    Configures logging for the entire application.
+    Writes logs to a file based on settings and outputs nothing to the console.
     """
-    if format_string is None:
-        format_string = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+    root_logger = logging.getLogger()
+    root_logger.setLevel(settings.LOG_LEVEL)
 
-    if stream is None:
-        stream = sys.stderr
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
 
-    logging.basicConfig(
-        level=level,
-        format=format_string,
-        stream=stream,
-        force=True,  # Override any existing configuration
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    log_file_path = Path(settings.LOG_FILE)
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    file_handler = RotatingFileHandler(
+        filename=log_file_path, maxBytes=settings.LOG_ROTATION_SIZE, backupCount=settings.LOG_BACKUP_COUNT
     )
+    file_handler.setFormatter(formatter)
+
+    root_logger.addHandler(file_handler)
 
 
 def get_logger(name: str) -> logging.Logger:
-    """
-    Get a logger instance for the given module name.
-
-    Args:
-        name: Logger name (typically __name__ of the calling module)
-
-    Returns:
-        Configured logger instance
-    """
+    """Get a logger instance for the given module name."""
     return logging.getLogger(name)
