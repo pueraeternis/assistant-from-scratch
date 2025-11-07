@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import List
 
 import click
@@ -8,6 +7,7 @@ import frameworks  # noqa: F401 # pylint: disable=unused-import
 from core.base_tool import BaseTool
 from core.logging import get_logger, setup_logging
 from core.registry import AGENT_REGISTRY, get_agent
+from tools.browse import BrowseTool
 from tools.internet_search import InternetSearchTool
 
 # configure logging
@@ -15,9 +15,7 @@ setup_logging()
 logger = get_logger(__name__)
 
 AVAILABLE_AGENTS = list(AGENT_REGISTRY.keys())
-AVAILABLE_TOOLS: List[BaseTool] = [
-    InternetSearchTool(),
-]
+AVAILABLE_TOOLS: List[BaseTool] = [InternetSearchTool(), BrowseTool()]
 
 
 @click.group()
@@ -30,7 +28,6 @@ def cli() -> None:
 @click.option("--dialog-id", default="default", help="Dialog/session id")
 def chat(agent: str, dialog_id: str) -> None:
     """Start interactive chat loop with the selected agent."""
-    # logging.getLogger().setLevel(logging.WARNING)
     asyncio.run(_chat_loop(agent_name=agent, dialog_id=dialog_id))
 
 

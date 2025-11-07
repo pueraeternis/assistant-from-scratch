@@ -45,14 +45,14 @@ class OpenAISDKAgent(BaseAgent):
         """Dynamically builds the system prompt including tool descriptions."""
 
         current_date = datetime.now().strftime("%A, %d %B %Y")
-        dated_prompt = (
+        system_prompt_with_date = (
             f"Current date is {current_date}. Your internal knowledge is cut off in early 2024. "
-            f"You MUST use the 'InternetSearch' tool for any questions about events, news, or specific facts "
+            f"You MUST use tools for any questions about events, news, or specific facts "
             f"from mid-2024 onwards. Do not answer from memory for recent topics. {base_prompt}"
         )
 
         if not self.tools:
-            return base_prompt
+            return system_prompt_with_date
 
         # Format tool descriptions for the LLM
         tool_descriptions = "\n\n".join([f"- {tool.name}: {tool.description}" for tool in self.tools.values()])
@@ -61,18 +61,18 @@ class OpenAISDKAgent(BaseAgent):
         YOU HAVE ACCESS TO THE FOLLOWING TOOLS:
         {tool_descriptions}
 
-        To use a tool, you MUST respond in the following JSON format inside <tool_call> tags:
+        To use a tool, you MUST respond in the following JSON format inside <tool_call> tags.
+        The tool's description specifies the exact argument names it expects.
+
+        Example format for a tool call:
         <tool_call>
         {{
-        "tool_name": "NameOfTheTool",
-        "query": "The question or input for the tool"
+          "tool_name": "NameOfTheTool",
+          "arg1_name": "value1"
         }}
         </tool_call>
-
-        When you have the final answer for the user, respond directly without using tool_call tags.
-        Only use a tool when you need external information to answer the user's question.
         """
-        return f"{dated_prompt}\n{tool_instructions}"
+        return f"{system_prompt_with_date}\n{tool_instructions}"
 
     async def chat(self, message: str, dialog_id: Optional[str] = None) -> str:
         """
@@ -93,7 +93,7 @@ class OpenAISDKAgent(BaseAgent):
         ]
 
         # "Thought -> Action -> Observation" cycle
-        max_loops = 5  # Limit to avoid infinite loops
+        max_loops = 10  # Limit to avoid infinite loops
         for i in range(max_loops):
             logger.debug("🧠 Calling LLM (loop %d)...", i + 1)
             try:
@@ -117,14 +117,13 @@ class OpenAISDKAgent(BaseAgent):
 
                     try:
                         tool_call_data = json.loads(tool_call_json_str)
-                        tool_name = tool_call_data.get("tool_name")
-                        tool_query = tool_call_data.get("query")
+                        tool_name = tool_call_data.pop("tool_name", None)
 
                         if tool_name in self.tools:
                             # Execute the tool
                             tool = self.tools[tool_name]
-                            logger.info("Executing tool '%s' with query: '%s'", tool_name, tool_query)
-                            tool_result = tool.run(tool_query)
+                            logger.info("Executing tool '%s' with args: %s", tool_name, tool_call_data)
+                            tool_result = tool.run(**tool_call_data)
                             logger.info("Tool '%s' raw result:\n%s", tool_name, tool_result)
 
                             # Add the tool's result to the history for the next LLM step

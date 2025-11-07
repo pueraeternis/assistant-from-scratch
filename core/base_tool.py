@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class BaseTool(ABC):
@@ -8,19 +9,19 @@ class BaseTool(ABC):
     description: str = "A brief description of what this tool does."
 
     @abstractmethod
-    def _run(self, query: str) -> str:
+    def _run(self, **kwargs: Any) -> str:
         """
         The core logic of the tool that must be implemented by subclasses.
-        It should process the input query and return a string result.
+        It accepts keyword arguments to perform its action.
         """
         raise NotImplementedError
 
-    def run(self, query: str) -> str:
+    def run(self, **kwargs: Any) -> str:
         """
         Public method to execute the tool with error handling.
-        This method wraps the core logic to catch and report exceptions.
+        This method wraps the core logic and passes all keyword arguments.
         """
         try:
-            return self._run(query)
+            return self._run(**kwargs)
         except Exception as e:
-            return f"Error while running tool {self.name}: {e}"
+            return f"Error while running tool {self.name} with args {kwargs}: {e}"

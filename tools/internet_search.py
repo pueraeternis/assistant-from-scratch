@@ -1,3 +1,5 @@
+from typing import Any
+
 from ddgs import DDGS
 
 from core.base_tool import BaseTool
@@ -16,11 +18,15 @@ class InternetSearchTool(BaseTool):
         "For example, to find the latest news, you could input 'latest technology news'."
     )
 
-    def _run(self, query: str) -> str:
+    def _run(self, **kwargs: Any) -> str:
         """
         Performs an internet search using the provided query and returns
         a formatted string of the top search results.
         """
+        query = kwargs.get("query")
+        if not query or not isinstance(query, str):
+            return "Error: The 'query' argument is missing or is not a string for InternetSearchTool."
+
         ddgs_client = DDGS()
         # We'll take the top 3-5 results to avoid overloading the LLM context
         results = list(ddgs_client.text(query, max_results=4))  # pyright: ignore[reportAttributeAccessIssue]
