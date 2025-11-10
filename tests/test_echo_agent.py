@@ -1,6 +1,6 @@
 import asyncio
 
-from frameworks.echo.agent import EchoAgent
+from agents.echo.agent import EchoAgent
 
 
 def test_echo_agent_basic():

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from agents.openai_sdk.agent import OpenAISDKAgent
 from core.memory import InMemoryMemory
-from frameworks.openai_sdk.agent import OpenAISDKAgent
 
 pytestmark = pytest.mark.asyncio
 
@@ -13,7 +13,7 @@ def mock_openai_client(mocker):
     """Fixture that mocks the OpenAI client."""
     mock_create = AsyncMock()
     # Patch the class in the module where it is used
-    mock_client_class = mocker.patch("frameworks.openai_sdk.agent.AsyncOpenAI")
+    mock_client_class = mocker.patch("agents.openai_sdk.agent.AsyncOpenAI")
     mock_client_class.return_value.chat.completions.create = mock_create
     return mock_create
 

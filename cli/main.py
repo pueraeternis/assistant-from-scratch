@@ -3,7 +3,7 @@ from typing import List
 
 import click
 
-import frameworks  # noqa: F401 # pylint: disable=unused-import
+import agents  # noqa: F401 # pylint: disable=unused-import
 from core.base_tool import BaseTool
 from core.logging import get_logger, setup_logging
 from core.registry import AGENT_REGISTRY, get_agent
