@@ -33,7 +33,9 @@ def cli() -> None:
 
 
 @cli.command()
-@click.option("--role", default="assistant", type=click.Choice(AVAILABLE_ROLES), help="The role for the agent to play.")
+@click.option(
+    "--role", default="orchestrator", type=click.Choice(AVAILABLE_ROLES), help="The role for the agent to play."
+)
 @click.option("--dialog-id", default="default", help="Dialog/session id")
 def chat(role: str, dialog_id: str) -> None:
     """Start interactive chat loop with the selected agent role."""

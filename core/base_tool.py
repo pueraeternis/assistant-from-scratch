@@ -12,18 +12,23 @@ class BaseTool(ABC):
 
     @abstractmethod
     def _run(self, **kwargs: Any) -> str:
-        """
-        The core logic of the tool that must be implemented by subclasses.
-        It accepts keyword arguments to perform its action.
-        """
-        raise NotImplementedError
+        """The synchronous core logic of the tool."""
+        raise NotImplementedError("This tool does not support synchronous execution.")
 
     def run(self, **kwargs: Any) -> str:
-        """
-        Public method to execute the tool with error handling.
-        This method wraps the core logic and passes all keyword arguments.
-        """
+        """Public method for synchronous execution."""
         try:
             return self._run(**kwargs)
+        except Exception as e:
+            return f"Error while running tool {self.name} with args {kwargs}: {e}"
+
+    async def _arun(self, **kwargs: Any) -> str:
+        """The asynchronous core logic of the tool."""
+        return self.run(**kwargs)
+
+    async def arun(self, **kwargs: Any) -> str:
+        """Public method for asynchronous execution with error handling."""
+        try:
+            return await self._arun(**kwargs)
         except Exception as e:
             return f"Error while running tool {self.name} with args {kwargs}: {e}"

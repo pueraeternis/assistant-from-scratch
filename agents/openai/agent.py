@@ -2,7 +2,6 @@
 
 import json
 import re
-from datetime import datetime
 from typing import Any, Dict, List, Optional, cast
 
 from openai import APIError, AsyncOpenAI
@@ -23,7 +22,7 @@ class OpenAIAgent(BaseAgent):
     It supports a Reason-Act (ReAct) loop to use tools.
     """
 
-    def __init__(self, memory: BaseMemory, tools: Optional[List[BaseTool]] = None):
+    def __init__(self, memory: BaseMemory, tools: Optional[List[BaseTool]] = None, system_prompt: str = ""):
         self.client = AsyncOpenAI(
             base_url=settings.OPENAI_API_URL,
             api_key=settings.OPENAI_API_KEY,
@@ -33,100 +32,13 @@ class OpenAIAgent(BaseAgent):
         self.temperature = settings.LLM_TEMPERATURE
         self.max_tokens = settings.LLM_MAX_TOKENS
 
-        # Store tools in a dictionary for fast access by name
         self.tools: Dict[str, BaseTool] = {tool.name: tool for tool in tools} if tools else {}
 
-        # Create a system prompt that includes tool descriptions
-        self.system_prompt = self._construct_system_prompt(settings.SYSTEM_PROMPT)
+        self.system_prompt = system_prompt
 
         logger.info("🤖 OpenAIAgent initialized for model: %s", self.model)
         if self.tools:
             logger.info("   ... with tools: %s", list(self.tools.keys()))
-
-    def _construct_system_prompt(self, base_prompt: str) -> str:
-        """Dynamically builds the system prompt with a clear, structured order of instructions."""
-
-        # Step 1: Define the base role (who are you?)
-        prompt_parts = [base_prompt]
-
-        # Step 2: Add context (what is the current situation?)
-        current_date = datetime.now().strftime("%A, %d %B %Y")
-        prompt_parts.append(f"Current date is {current_date}.")
-
-        # Step 3: If there are no tools, we finish here.
-        if not self.tools:
-            return "\n\n".join(prompt_parts)
-
-        # Step 4: Describe capabilities (what resources do you have?)
-        tool_descriptions = "\n\n".join([f"- {tool.name}: {tool.description}" for tool in self.tools.values()])
-        prompt_parts.append(f"YOU HAVE ACCESS TO THE FOLLOWING TOOLS:\n{tool_descriptions}")
-
-        db_schema_description = """You also have access to a SQLite database for company data with the following schema:
-
-        CREATE TABLE employees (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        position TEXT,
-        department_id INTEGER,
-        salary INTEGER,
-        FOREIGN KEY (department_id) REFERENCES departments (id)
-        );
-
-        CREATE TABLE departments (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE
-        );
-        """
-        prompt_parts.append(db_schema_description)
-
-        few_shot_examples = """
-        Here are examples of how to respond to user queries:
-
-        **Example 1:**
-        User query: "Who are the employees in the Sales department?"
-        Your response:
-        <tool_call>
-        {
-        "tool_name": "SQLQueryTool",
-        "query": "SELECT e.name FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.name = 'Sales';"
-        }
-        </tool_call>
-
-        **Example 2 (Crucial for calculations):**
-        User query: "What is the average salary?"
-        Your response:
-        <tool_call>
-        {
-        "tool_name": "SQLQueryTool",
-        "query": "SELECT AVG(salary) FROM employees;"
-        }
-        </tool_call>
-        """
-        prompt_parts.append(few_shot_examples)
-
-        # Step 5: Give a strict instruction (what are you required to do?)
-        # Combine the rule and the format into one final block of instructions.
-        final_instructions = (
-            "Your internal knowledge is cut off in early 2024. "
-            "You MUST use your tools for any questions about events, news, or specific facts from mid-2024 onwards. "
-            "Do not answer from memory for recent topics.\n\n"
-            "**For ANY query about company data (employees, departments, salaries, etc.), even for simple questions or calculations, "
-            "you are FORBIDDEN from answering from memory or context history. You MUST generate a SQLite query and use the SQLQueryTool. "
-            "Follow the examples provided.**\n\n"
-            "To use a tool, respond in the following JSON format inside <tool_call> tags. "
-            "The tool's description specifies the exact argument names it expects.\n\n"
-            "Example format for a tool call:\n"
-            "<tool_call>\n"
-            "{\n"
-            '  "tool_name": "NameOfTheTool",\n'
-            '  "arg_name": "value"\n'
-            "}\n"
-            "</tool_call>"
-        )
-        prompt_parts.append(final_instructions)
-
-        # Assemble the final prompt
-        return "\n\n".join(prompt_parts)
 
     async def chat(self, message: str, dialog_id: Optional[str] = None) -> str:
         """
@@ -177,7 +89,7 @@ class OpenAIAgent(BaseAgent):
                             # Execute the tool
                             tool = self.tools[tool_name]
                             logger.info("Executing tool '%s' with args: %s", tool_name, tool_call_data)
-                            tool_result = tool.run(**tool_call_data)
+                            tool_result = await tool.arun(**tool_call_data)
                             logger.info("Tool '%s' raw result:\n%s", tool_name, tool_result)
 
                             # Add the tool's result to the history for the next LLM step
