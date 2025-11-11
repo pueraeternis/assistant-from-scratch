@@ -1,3 +1,5 @@
+# tools/browse.py
+
 from typing import Any
 
 import httpx

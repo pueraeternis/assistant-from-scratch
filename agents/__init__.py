@@ -1,3 +1,5 @@
+# agents/__init__.py
+
 from typing import List, Optional
 
 from config.settings import settings

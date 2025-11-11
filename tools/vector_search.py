@@ -1,3 +1,5 @@
+# tools/vector_search.py
+
 import json
 from pathlib import Path
 from typing import Any, Dict, List

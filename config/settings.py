@@ -1,3 +1,5 @@
+# config/settings.py
+
 import logging
 
 from pydantic_settings import BaseSettings, SettingsConfigDict

@@ -1,3 +1,5 @@
+# core/registry.py
+
 from typing import Callable, Dict
 
 from core.base_agent import BaseAgent

@@ -1,3 +1,5 @@
+# scripts/process_papers.py
+
 import logging
 import traceback
 from pathlib import Path

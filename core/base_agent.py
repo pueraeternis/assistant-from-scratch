@@ -1,3 +1,5 @@
+# core/base_agent.py
+
 from abc import ABC, abstractmethod
 from typing import Optional
 
