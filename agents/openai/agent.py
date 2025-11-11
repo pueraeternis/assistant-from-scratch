@@ -61,12 +61,32 @@ class OpenAIAgent(BaseAgent):
         tool_descriptions = "\n\n".join([f"- {tool.name}: {tool.description}" for tool in self.tools.values()])
         prompt_parts.append(f"YOU HAVE ACCESS TO THE FOLLOWING TOOLS:\n{tool_descriptions}")
 
+        db_schema_description = """You also have access to a SQLite database for company data with the following schema:
+
+        CREATE TABLE employees (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        position TEXT,
+        department_id INTEGER,
+        salary INTEGER,
+        FOREIGN KEY (department_id) REFERENCES departments (id)
+        );
+
+        CREATE TABLE departments (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE
+        );
+        """
+        prompt_parts.append(db_schema_description)
+
         # Step 5: Give a strict instruction (what are you required to do?)
         # Combine the rule and the format into one final block of instructions.
         final_instructions = (
             "Your internal knowledge is cut off in early 2024. "
             "You MUST use your tools for any questions about events, news, or specific facts from mid-2024 onwards. "
             "Do not answer from memory for recent topics.\n\n"
+            "**Crucially, if the user's query is about company data (e.g., employees, departments, salaries), "
+            "you MUST use the SQLQueryTool to get the answer. You are an expert in writing SQLite queries.**\n\n"
             "To use a tool, respond in the following JSON format inside <tool_call> tags. "
             "The tool's description specifies the exact argument names it expects.\n\n"
             "Example format for a tool call:\n"

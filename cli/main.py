@@ -11,6 +11,7 @@ from core.logging import get_logger, setup_logging
 from core.registry import AGENT_REGISTRY, get_agent
 from tools.browse import BrowseTool
 from tools.internet_search import InternetSearchTool
+from tools.sql_query import SQLQueryTool
 from tools.vector_search import VectorSearchTool
 
 # configure logging
@@ -22,6 +23,7 @@ AVAILABLE_TOOLS: List[BaseTool] = [
     InternetSearchTool(),
     BrowseTool(),
     VectorSearchTool(),
+    SQLQueryTool(),
 ]
 
 
