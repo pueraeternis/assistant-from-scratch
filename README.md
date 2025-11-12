@@ -70,7 +70,8 @@ source .venv/bin/activate
 uv venv
 ```
 
-### 3. Install Dependencies```bash
+### 3. Install Dependencies
+```bash
 uv pip install -r requirements.txt
 # or if you have a pyproject.toml
 uv pip sync
