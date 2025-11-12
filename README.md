@@ -59,7 +59,8 @@ The project is organized into clear, decoupled modules:
 ### 1. Clone the Repository
 ```bash
 git clone git@github.com:pueraeternis/assistant-from-scratch.git
-cd assistant-from-scratch```
+cd assistant-from-scratch
+```
 
 ### 2. Set Up Virtual Environment
 ```bash
